@@ -233,6 +233,70 @@ func TestSolve_ModeFlagIsTwo(t *testing.T) {
 	}
 }
 
+func TestSolve_RepeatAxis(t *testing.T) {
+	s := New()
+
+	t.Run("height-axis repeat snaps y placements", func(t *testing.T) {
+		// 48×96 sheet, repeat=24 on height axis, kerf=0
+		// two 27×36 pieces: first at y=0, second must start at y=ceil(36/24)*24=48
+		stock := []model.StockPiece{{Width: 48, Height: 96, Count: 1, OnHand: true, RepeatDistance: 24, RepeatAxis: "height"}}
+		need := []model.RequiredPiece{{Label: "A", Width: 27, Height: 36, Count: 2}}
+		plan, err := s.Solve(stock, need, 0, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(plan.Unfit) != 0 {
+			t.Fatalf("unexpected unfit: %v", plan.Unfit)
+		}
+		assignments := plan.Results[0].Assignments
+		ys := map[float64]bool{}
+		for _, a := range assignments {
+			ys[a.OffsetY] = true
+		}
+		if !ys[0] {
+			t.Error("expected first piece at y=0")
+		}
+		if !ys[48] {
+			t.Errorf("expected second piece at y=48 (snapped to repeat boundary), got ys=%v", ys)
+		}
+	})
+
+	t.Run("repeat prevents over-packing on height axis", func(t *testing.T) {
+		// 48×96 sheet, repeat=24: each 36"-tall piece needs 48" of repeat cells
+		// three pieces × 48" = 144" > 96" — only two fit
+		stock := []model.StockPiece{{Width: 48, Height: 96, Count: 1, OnHand: true, RepeatDistance: 24, RepeatAxis: "height"}}
+		need := []model.RequiredPiece{{Label: "A", Width: 48, Height: 36, Count: 3}}
+		plan, _ := s.Solve(stock, need, 0, false)
+		assigned := 0
+		for _, r := range plan.Results {
+			assigned += len(r.Assignments)
+		}
+		if assigned != 2 {
+			t.Errorf("expected 2 assigned, got %d (repeat should block third piece)", assigned)
+		}
+		if len(plan.Unfit) != 1 {
+			t.Errorf("expected 1 unfit, got %d", len(plan.Unfit))
+		}
+	})
+
+	t.Run("no repeat behaves as before", func(t *testing.T) {
+		stock := []model.StockPiece{{Width: 48, Height: 96, Count: 1, OnHand: true}}
+		need := []model.RequiredPiece{{Label: "A", Width: 48, Height: 36, Count: 2}}
+		plan, _ := s.Solve(stock, need, 0, false)
+		if len(plan.Unfit) != 0 {
+			t.Fatalf("unexpected unfit: %v", plan.Unfit)
+		}
+		assignments := plan.Results[0].Assignments
+		ys := map[float64]bool{}
+		for _, a := range assignments {
+			ys[a.OffsetY] = true
+		}
+		if !ys[0] || !ys[36] {
+			t.Errorf("expected y=0 and y=36 without repeat, got %v", ys)
+		}
+	})
+}
+
 // checkNoOverlap verifies no two assignments on the same sheet overlap.
 func checkNoOverlap(t *testing.T, assignments []model.Assignment) {
 	t.Helper()

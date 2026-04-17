@@ -1,6 +1,10 @@
 package solver2d
 
-import "github.com/beekman/cut-calculator/internal/model"
+import (
+	"math"
+
+	"github.com/beekman/cut-calculator/internal/model"
+)
 
 // region is a free rectangular area on a sheet, with absolute coordinates.
 type region struct{ x, y, w, h float64 }
@@ -23,10 +27,10 @@ type orientation struct {
 
 // packSheet greedily places as many pieces as possible into free regions.
 // Pieces must already be sorted largest-area-first by the caller.
-func packSheet(pieces []model.RequiredPiece, free []region, kerf float64, rotate bool) []placed {
+func packSheet(pieces []model.RequiredPiece, free []region, kerf float64, rotate bool, repeatDist float64, repeatAxis string) []placed {
 	var placements []placed
 	for _, p := range pieces {
-		if pl, newFree := placeOne(p, free, kerf, rotate); pl != nil {
+		if pl, newFree := placeOne(p, free, kerf, rotate, repeatDist, repeatAxis); pl != nil {
 			placements = append(placements, *pl)
 			free = newFree
 		}
@@ -36,19 +40,25 @@ func packSheet(pieces []model.RequiredPiece, free []region, kerf float64, rotate
 
 // placeOne tries to fit piece p into the first valid free region.
 // It tries both split orientations and keeps the one with the larger max free rect.
-func placeOne(p model.RequiredPiece, free []region, kerf float64, rotate bool) (*placed, []region) {
+// When repeatDist > 0, each region is snapped to the next boundary on repeatAxis
+// before fitting; sub-regions after splits are snapped likewise.
+func placeOne(p model.RequiredPiece, free []region, kerf float64, rotate bool, repeatDist float64, repeatAxis string) (*placed, []region) {
 	for i, fr := range free {
+		snapped := snapRegion(fr, repeatDist, repeatAxis)
+		if !snapped.valid() {
+			continue
+		}
 		others := withoutIdx(free, i)
 		for _, o := range orientations(p, rotate) {
-			if o.w > fr.w || o.h > fr.h {
+			if o.w > snapped.w || o.h > snapped.h {
 				continue
 			}
 
-			sub1H, sub2H := hSplit(fr, o.w, o.h, kerf)
-			sub1V, sub2V := vSplit(fr, o.w, o.h, kerf)
+			sub1H, sub2H := hSplit(snapped, o.w, o.h, kerf)
+			sub1V, sub2V := vSplit(snapped, o.w, o.h, kerf)
 
-			freesH := validOnly(concat(others, sub1H, sub2H))
-			freesV := validOnly(concat(others, sub1V, sub2V))
+			freesH := validOnly(snapRegions(concat(others, sub1H, sub2H), repeatDist, repeatAxis))
+			freesV := validOnly(snapRegions(concat(others, sub1V, sub2V), repeatDist, repeatAxis))
 
 			var chosen []region
 			if maxArea(freesH) >= maxArea(freesV) {
@@ -56,10 +66,41 @@ func placeOne(p model.RequiredPiece, free []region, kerf float64, rotate bool) (
 			} else {
 				chosen = freesV
 			}
-			return &placed{p, fr.x, fr.y, o.w, o.h, o.rotated}, chosen
+			return &placed{p, snapped.x, snapped.y, o.w, o.h, o.rotated}, chosen
 		}
 	}
 	return nil, nil
+}
+
+// snapRegion advances the starting coordinate of fr on repeatAxis to the next
+// repeat boundary, shrinking the available dimension accordingly.
+// A zero repeatDist is a no-op.
+func snapRegion(fr region, repeatDist float64, repeatAxis string) region {
+	if repeatDist <= 0 {
+		return fr
+	}
+	switch repeatAxis {
+	case "height":
+		snappedY := math.Ceil(fr.y/repeatDist) * repeatDist
+		gap := snappedY - fr.y
+		return region{x: fr.x, y: snappedY, w: fr.w, h: fr.h - gap}
+	case "width":
+		snappedX := math.Ceil(fr.x/repeatDist) * repeatDist
+		gap := snappedX - fr.x
+		return region{x: snappedX, y: fr.y, w: fr.w - gap, h: fr.h}
+	}
+	return fr
+}
+
+func snapRegions(rects []region, repeatDist float64, repeatAxis string) []region {
+	if repeatDist <= 0 {
+		return rects
+	}
+	out := make([]region, len(rects))
+	for i, r := range rects {
+		out[i] = snapRegion(r, repeatDist, repeatAxis)
+	}
+	return out
 }
 
 // hSplit splits region fr after placing a piece (pw×ph) at its top-left.

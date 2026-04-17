@@ -40,7 +40,7 @@ func (s *Solver) Solve(stock []model.StockPiece, need []model.RequiredPiece, ker
 		}
 
 		fr := region{0, 0, sheet.Width, sheet.Height}
-		placements := packSheet(remaining, []region{fr}, kerf, rotate)
+		placements := packSheet(remaining, []region{fr}, kerf, rotate, sheet.RepeatDistance, sheet.RepeatAxis)
 		if len(placements) == 0 {
 			continue
 		}
@@ -103,7 +103,14 @@ func expandStock(stock []model.StockPiece) []model.StockPiece {
 			n = 1
 		}
 		for i := 0; i < n; i++ {
-			out = append(out, model.StockPiece{Width: s.Width, Height: s.Height, Count: 1, OnHand: s.OnHand})
+			out = append(out, model.StockPiece{
+				Width:          s.Width,
+				Height:         s.Height,
+				Count:          1,
+				OnHand:         s.OnHand,
+				RepeatDistance: s.RepeatDistance,
+				RepeatAxis:     s.RepeatAxis,
+			})
 		}
 	}
 	return out
