@@ -1,19 +1,22 @@
 package model
 
 type StockPiece struct {
-	Length float64
-	Width  float64
-	Height float64
-	Count  int
-	OnHand bool
+	Length         float64
+	Width          float64
+	Height         float64
+	Count          int
+	OnHand         bool
+	RepeatDistance float64 `json:",omitempty"` // 0 = no repeat constraint
+	RepeatAxis     string  `json:",omitempty"` // 2D only: "height" or "width"; ignored in 1D
 }
 
 type RequiredPiece struct {
-	Label  string
-	Length float64
-	Width  float64
-	Height float64
-	Count  int
+	Label     string
+	Length    float64
+	Width     float64
+	Height    float64
+	Count     int
+	JoinGroup string `json:",omitempty"` // pieces sharing a label are combined-cut candidates; "" = no group
 }
 
 type Cut struct {
