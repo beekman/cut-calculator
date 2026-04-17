@@ -53,10 +53,19 @@ func (a *ASCIIWriter) write1D(w io.Writer, plan model.CutPlan) error {
 
 // bar1D renders a stock result as a schematic cut bar.
 // Example: |--A(36")--|--B(48")--|  [waste: 10"]
+// With pattern repeat: |--A(36")--|~~(12")~~|--A(36")--|  [waste: 12"]
 func bar1D(r model.StockResult) string {
 	var sb strings.Builder
 	sb.WriteRune('|')
-	for _, a := range r.Assignments {
+	for i, a := range r.Assignments {
+		// show alignment gap before this piece when repeat is active
+		if i > 0 && r.Stock.RepeatDistance > 0 && i < len(r.Cuts) {
+			prevEnd := r.Cuts[i-1].Position + r.Assignments[i-1].Length
+			gap := r.Cuts[i].Position - prevEnd
+			if gap > 0.001 {
+				fmt.Fprintf(&sb, "~~(%.4g\")~~|", gap)
+			}
+		}
 		fmt.Fprintf(&sb, "--%s(%.4g\")--|", a.RequiredLabel, a.Length)
 	}
 	if r.WasteLength > 0.001 {
@@ -82,6 +91,7 @@ func (a *ASCIIWriter) write2D(w io.Writer, plan model.CutPlan) error {
 			i+1, r.Stock.Width, r.Stock.Height, origin)
 
 		grid, scale := newSheetGrid(r.Stock)
+		renderRepeatLines(grid, r.Stock, scale)
 		renderAssignments(grid, r.Assignments, scale)
 		printGrid(w, grid)
 
@@ -157,6 +167,30 @@ func renderAssignments(grid [][]rune, assignments []model.Assignment, scale floa
 			if gy1+2 < gy2 {
 				dims := fmt.Sprintf("%.4g×%.4g", a.Width, a.Height)
 				setStr(grid, gx1+1, gy1+2, dims, interior)
+			}
+		}
+	}
+}
+
+// renderRepeatLines draws boundary markers at each repeat interval before piece borders.
+// Piece borders drawn afterwards naturally overwrite or merge at intersections.
+func renderRepeatLines(grid [][]rune, sheet model.StockPiece, scale float64) {
+	if sheet.RepeatDistance <= 0 {
+		return
+	}
+	switch sheet.RepeatAxis {
+	case "height":
+		for y := sheet.RepeatDistance; y < sheet.Height; y += sheet.RepeatDistance {
+			gy := int(math.Round(y * scale))
+			for x := 0; x < len(grid[0]); x++ {
+				setCell(grid, x, gy, '-')
+			}
+		}
+	case "width":
+		for x := sheet.RepeatDistance; x < sheet.Width; x += sheet.RepeatDistance {
+			gx := int(math.Round(x * scale))
+			for y := 0; y < len(grid); y++ {
+				setCell(grid, gx, y, '|')
 			}
 		}
 	}

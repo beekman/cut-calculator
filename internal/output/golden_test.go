@@ -58,6 +58,48 @@ var plan2D = model.CutPlan{
 	Unfit:     nil,
 }
 
+// plan1DRepeat: 96" stock with 24" repeat, two 36" pieces. Alignment gap at y=48.
+var plan1DRepeat = model.CutPlan{
+	Mode: 1,
+	Results: []model.StockResult{
+		{
+			Stock: model.StockPiece{Length: 96, Count: 1, OnHand: true, RepeatDistance: 24},
+			Assignments: []model.Assignment{
+				{StockIndex: 0, RequiredLabel: "A", Length: 36},
+				{StockIndex: 0, RequiredLabel: "A", Length: 36},
+			},
+			Cuts: []model.Cut{
+				{Position: 0, Label: "A"},
+				{Position: 48, Label: "A"}, // snapped to next 24" boundary after 36.125
+			},
+			WasteLength: 12,
+		},
+	},
+	WastePct:  25,
+	Purchased: nil,
+	Unfit:     nil,
+}
+
+// plan2DRepeat: 48×96 sheet, repeat=48 on height axis, two 27×36 pieces.
+// Piece 1 at y=0, piece 2 snapped to y=48 (next 48" boundary after 36").
+// Repeat boundary line appears at y=48 between the two pieces.
+var plan2DRepeat = model.CutPlan{
+	Mode: 2,
+	Results: []model.StockResult{
+		{
+			Stock: model.StockPiece{Width: 48, Height: 96, Count: 1, OnHand: true, RepeatDistance: 48, RepeatAxis: "height"},
+			Assignments: []model.Assignment{
+				{StockIndex: 0, RequiredLabel: "A", Width: 27, Height: 36, OffsetX: 0, OffsetY: 0},
+				{StockIndex: 0, RequiredLabel: "A", Width: 27, Height: 36, OffsetX: 0, OffsetY: 48},
+			},
+			WasteArea: 48*96 - 27*36*2,
+		},
+	},
+	WastePct:  (48*96 - 27*36*2) / (48 * 96) * 100,
+	Purchased: nil,
+	Unfit:     nil,
+}
+
 func TestGolden(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -70,6 +112,8 @@ func TestGolden(t *testing.T) {
 		{"simple_2d", model.OutputASCII, plan2D},
 		{"simple_2d", model.OutputText, plan2D},
 		{"simple_2d", model.OutputJSON, plan2D},
+		{"repeat_1d", model.OutputASCII, plan1DRepeat},
+		{"repeat_2d", model.OutputASCII, plan2DRepeat},
 	}
 
 	for _, tc := range cases {
