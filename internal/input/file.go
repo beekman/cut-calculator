@@ -17,18 +17,21 @@ type yamlFile struct {
 }
 
 type yamlStock struct {
-	Length float64 `yaml:"length"`
-	Width  float64 `yaml:"width"`
-	Height float64 `yaml:"height"`
-	Count  int     `yaml:"count"`
-	OnHand bool    `yaml:"on_hand"`
+	Length         float64 `yaml:"length"`
+	Width          float64 `yaml:"width"`
+	Height         float64 `yaml:"height"`
+	Count          int     `yaml:"count"`
+	OnHand         bool    `yaml:"on_hand"`
+	RepeatDistance float64 `yaml:"repeat_distance"`
+	RepeatAxis     string  `yaml:"repeat_axis"`
 }
 
 type yamlNeed struct {
-	Length float64 `yaml:"length"`
-	Width  float64 `yaml:"width"`
-	Height float64 `yaml:"height"`
-	Count  int     `yaml:"count"`
+	Length    float64 `yaml:"length"`
+	Width     float64 `yaml:"width"`
+	Height    float64 `yaml:"height"`
+	Count     int     `yaml:"count"`
+	JoinGroup string  `yaml:"join_group"`
 }
 
 func ParseFile(path string) (*Config, error) {
@@ -52,11 +55,13 @@ func ParseFile(path string) (*Config, error) {
 
 	for _, s := range f.Stock {
 		p := model.StockPiece{
-			Length: s.Length,
-			Width:  s.Width,
-			Height: s.Height,
-			Count:  s.Count,
-			OnHand: s.OnHand,
+			Length:         s.Length,
+			Width:          s.Width,
+			Height:         s.Height,
+			Count:          s.Count,
+			OnHand:         s.OnHand,
+			RepeatDistance: s.RepeatDistance,
+			RepeatAxis:     s.RepeatAxis,
 		}
 		if p.Count == 0 {
 			p.Count = 1
@@ -67,11 +72,12 @@ func ParseFile(path string) (*Config, error) {
 	labels := labelSeq()
 	for _, n := range f.Need {
 		p := model.RequiredPiece{
-			Label:  labels(),
-			Length: n.Length,
-			Width:  n.Width,
-			Height: n.Height,
-			Count:  n.Count,
+			Label:     labels(),
+			Length:    n.Length,
+			Width:     n.Width,
+			Height:    n.Height,
+			Count:     n.Count,
+			JoinGroup: n.JoinGroup,
 		}
 		if p.Count == 0 {
 			p.Count = 1

@@ -148,6 +148,58 @@ func TestParseFile_InvalidYAML(t *testing.T) {
 	}
 }
 
+func TestParseFile_RepeatFields(t *testing.T) {
+	yaml := `
+stock:
+  - width: 27
+    height: 240
+    on_hand: true
+    repeat_distance: 24
+    repeat_axis: height
+need:
+  - width: 27
+    height: 96
+`
+	cfg, err := ParseFile(writeTemp(t, yaml))
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := cfg.Stock[0]
+	if s.RepeatDistance != 24 {
+		t.Errorf("repeat_distance: got %v, want 24", s.RepeatDistance)
+	}
+	if s.RepeatAxis != "height" {
+		t.Errorf("repeat_axis: got %q, want %q", s.RepeatAxis, "height")
+	}
+}
+
+func TestParseFile_JoinGroup(t *testing.T) {
+	yaml := `
+stock:
+  - length: 96
+    count: 2
+need:
+  - length: 48
+    join_group: panel-left
+  - length: 48
+    join_group: panel-left
+  - length: 36
+`
+	cfg, err := ParseFile(writeTemp(t, yaml))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Need[0].JoinGroup != "panel-left" {
+		t.Errorf("need[0].JoinGroup: got %q, want %q", cfg.Need[0].JoinGroup, "panel-left")
+	}
+	if cfg.Need[1].JoinGroup != "panel-left" {
+		t.Errorf("need[1].JoinGroup: got %q, want %q", cfg.Need[1].JoinGroup, "panel-left")
+	}
+	if cfg.Need[2].JoinGroup != "" {
+		t.Errorf("need[2].JoinGroup: got %q, want empty", cfg.Need[2].JoinGroup)
+	}
+}
+
 func TestParseFile_OutputFormatDefault(t *testing.T) {
 	yaml := "stock:\n  - length: 96\nneed:\n  - length: 10\n"
 	cfg, err := ParseFile(writeTemp(t, yaml))
