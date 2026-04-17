@@ -14,7 +14,9 @@ func New(format model.OutputFormat) Writer {
 	switch format {
 	case model.OutputJSON:
 		return &JSONWriter{}
-	default:
+	case model.OutputText:
 		return &TextWriter{}
+	default: // "" or "ascii"
+		return &ASCIIWriter{}
 	}
 }

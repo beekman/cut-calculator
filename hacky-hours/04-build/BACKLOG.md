@@ -1,13 +1,13 @@
 # Backlog
 
-## MVP — 1D Cutting Optimizer
+## V1 — Complete Product
 
-- [x] Project scaffold (Go module, package layout, CI)
-- [x] Core model types (`StockPiece`, `RequiredPiece`, `CutPlan`, `Assignment`)
-- [x] CLI flag parsing (`--stock`, `--need`, `--kerf`, `--output`)
-- [x] Input validation and error reporting
-- [x] 1D solver: bounded knapsack DP
-- [x] 1D solver: branch-and-bound assignment
-- [x] Mixed stock: on-hand priority + purchasable recommendation
-- [x] Plain text output formatter
-- [x] Reference case tests + edge case tests
+- [x] YAML file input parser
+- [x] Flag + file merge logic
+- [x] 2D solver: recursive guillotine packing
+- [x] 2D solver: rotation support + `--no-rotate` flag
+- [x] ASCII diagram output (1D and 2D)
+- [x] JSON output formatter
+- [x] ASCII becomes default output; plain text via `--output text`
+- [x] Fuzz tests (1D and 2D solvers)
+- [x] Golden file tests (all output formats)

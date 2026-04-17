@@ -1,0 +1,68 @@
+{
+  "Mode": 1,
+  "Results": [
+    {
+      "Stock": {
+        "Length": 96,
+        "Width": 0,
+        "Height": 0,
+        "Count": 1,
+        "OnHand": true
+      },
+      "Assignments": [
+        {
+          "StockIndex": 0,
+          "RequiredLabel": "A",
+          "Length": 36,
+          "Width": 0,
+          "Height": 0,
+          "OffsetX": 0,
+          "OffsetY": 0,
+          "Rotated": false
+        },
+        {
+          "StockIndex": 0,
+          "RequiredLabel": "A",
+          "Length": 36,
+          "Width": 0,
+          "Height": 0,
+          "OffsetX": 0,
+          "OffsetY": 0,
+          "Rotated": false
+        },
+        {
+          "StockIndex": 0,
+          "RequiredLabel": "B",
+          "Length": 22,
+          "Width": 0,
+          "Height": 0,
+          "OffsetX": 0,
+          "OffsetY": 0,
+          "Rotated": false
+        }
+      ],
+      "Cuts": [
+        {
+          "Position": 0,
+          "Label": "A",
+          "Axis": ""
+        },
+        {
+          "Position": 36.125,
+          "Label": "A",
+          "Axis": ""
+        },
+        {
+          "Position": 72.25,
+          "Label": "B",
+          "Axis": ""
+        }
+      ],
+      "WasteLength": 1.75,
+      "WasteArea": 0
+    }
+  ],
+  "WastePct": 2.0833,
+  "Purchased": null,
+  "Unfit": null
+}

@@ -1,32 +1,8 @@
 # Roadmap
 
-## MVP — 1D Cutting Optimizer
-
-The smallest version that proves the core value: given a list of lengths to cut
-and the boards you have (plus what you can buy), produce the optimal cutting plan
-with minimum waste.
-
-**Done when:** A user can run `cut-calculator --stock 96:3:onhand --need 36:4 --need 48:2 --kerf 0.125`
-and get a correct, human-readable cut list back.
-
-### Tasks
-- [ ] Project scaffold (Go module, package layout, CI)
-- [ ] Core model types (`StockPiece`, `RequiredPiece`, `CutPlan`, `Assignment`)
-- [ ] CLI flag parsing (`--stock`, `--need`, `--kerf`, `--output`)
-- [ ] Input validation and error reporting
-- [ ] 1D solver: bounded knapsack DP
-- [ ] 1D solver: branch-and-bound assignment
-- [ ] Mixed stock: on-hand priority + purchasable recommendation
-- [ ] Plain text output formatter
-- [ ] Reference case tests + edge case tests
-
----
-
 ## V1 — Complete Product
 
-Adds 2D sheet cutting, visual output, file-based input, and JSON export.
-
-**Done when:** A user can describe a pegboard job in a YAML file, run the tool,
+A user can describe a pegboard job in a YAML file, run the tool,
 and get an ASCII diagram showing how to cut each sheet.
 
 ### Tasks
@@ -45,3 +21,7 @@ and get an ASCII diagram showing how to cut each sheet.
 ## V2+ — Future
 
 - Wallpaper pattern-repeat matching
+
+---
+
+_MVP shipped as v0.1.0 — see `archive/roadmap/MVP.md`_

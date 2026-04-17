@@ -13,7 +13,9 @@ type Config struct {
 	Stock        []model.StockPiece
 	Need         []model.RequiredPiece
 	Kerf         float64
+	Rotate       bool
 	OutputFormat model.OutputFormat
+	FilePath     string
 }
 
 type stringSlice []string
@@ -30,12 +32,17 @@ func Parse(args []string) (*Config, error) {
 	var stockFlags stringSlice
 	var needFlags stringSlice
 	var kerf float64
+	var noRotate bool
 	var outputFormat string
+	var filePath string
 
 	fs.Var(&stockFlags, "stock", "Stock piece: LENGTH[:COUNT][:onhand] e.g. 96:3:onhand")
 	fs.Var(&needFlags, "need", "Required piece: LENGTH[:COUNT] e.g. 36:4")
 	fs.Float64Var(&kerf, "kerf", 0, "Blade kerf width in inches")
-	fs.StringVar(&outputFormat, "output", "text", "Output format: text, json")
+	fs.BoolVar(&noRotate, "no-rotate", false, "Disable piece rotation in 2D mode")
+	fs.StringVar(&outputFormat, "output", "", "Output format: ascii (default), text, json")
+	fs.StringVar(&filePath, "f", "", "Path to input YAML file")
+	fs.StringVar(&filePath, "file", "", "Path to input YAML file")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, err
@@ -43,7 +50,9 @@ func Parse(args []string) (*Config, error) {
 
 	cfg := &Config{
 		Kerf:         kerf,
+		Rotate:       !noRotate,
 		OutputFormat: model.OutputFormat(outputFormat),
+		FilePath:     filePath,
 	}
 
 	for _, s := range stockFlags {

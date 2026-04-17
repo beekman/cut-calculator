@@ -37,6 +37,22 @@ func Validate(cfg *Config) error {
 	return nil
 }
 
+// DetectMode returns 1 for 1D input, 2 for 2D input.
+// 2D mode is triggered when any stock or required piece has non-zero Width or Height.
+func DetectMode(cfg *Config) int {
+	for _, s := range cfg.Stock {
+		if s.Width > 0 || s.Height > 0 {
+			return 2
+		}
+	}
+	for _, n := range cfg.Need {
+		if n.Width > 0 || n.Height > 0 {
+			return 2
+		}
+	}
+	return 1
+}
+
 func maxStockLength(stock []model.StockPiece) float64 {
 	var max float64
 	for _, s := range stock {

@@ -19,5 +19,10 @@ jobs:
       - name: Test
         run: go test ./...
 
+      - name: Fuzz (short CI run)
+        run: |
+          go test -fuzz=FuzzSolve1D -fuzztime=30s ./internal/solver/solver1d/
+          go test -fuzz=FuzzSolve2D -fuzztime=30s ./internal/solver/solver2d/
+
       - name: Build
         run: go build ./cmd/cut-calculator

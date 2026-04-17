@@ -1,0 +1,8 @@
+Stock #1 — 96" board (on hand)
+  Cut 1: 36"  → Piece A
+  Cut 2: 36"  → Piece A
+  Cut 3: 22"  → Piece B
+  Offcut: 1.75"
+
+Overall waste: 2.1%
+Nothing to purchase — all pieces fit within on-hand stock.
