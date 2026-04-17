@@ -54,6 +54,7 @@ func (a *ASCIIWriter) write1D(w io.Writer, plan model.CutPlan) error {
 // bar1D renders a stock result as a schematic cut bar.
 // Example: |--A(36")--|--B(48")--|  [waste: 10"]
 // With pattern repeat: |--A(36")--|~~(12")~~|--A(36")--|  [waste: 12"]
+// With join group:     |--A(36"):B(48")--|  [single cut, join marked with :]
 func bar1D(r model.StockResult) string {
 	var sb strings.Builder
 	sb.WriteRune('|')
@@ -66,7 +67,24 @@ func bar1D(r model.StockResult) string {
 				fmt.Fprintf(&sb, "~~(%.4g\")~~|", gap)
 			}
 		}
-		fmt.Fprintf(&sb, "--%s(%.4g\")--|", a.RequiredLabel, a.Length)
+		if a.JoinAxis == "length" && len(a.JoinLabels) > 0 {
+			sb.WriteString("--")
+			prev := 0.0
+			for j, label := range a.JoinLabels {
+				end := a.Length
+				if j < len(a.JoinDivisions) {
+					end = a.JoinDivisions[j]
+				}
+				if j > 0 {
+					sb.WriteRune(':')
+				}
+				fmt.Fprintf(&sb, "%s(%.4g\")", label, end-prev)
+				prev = end
+			}
+			sb.WriteString("--|")
+		} else {
+			fmt.Fprintf(&sb, "--%s(%.4g\")--|", a.RequiredLabel, a.Length)
+		}
 	}
 	if r.WasteLength > 0.001 {
 		fmt.Fprintf(&sb, "  [waste: %.4g\"]", r.WasteLength)
@@ -160,7 +178,66 @@ func renderAssignments(grid [][]rune, assignments []model.Assignment, scale floa
 		drawRect(grid, gx1, gy1, gx2, gy2)
 
 		interior := gx2 - gx1 - 1
-		if interior > 0 {
+		if interior <= 0 {
+			continue
+		}
+
+		if len(a.JoinLabels) > 0 && len(a.JoinDivisions) > 0 {
+			// draw dividing lines and per-section labels
+			prev := 0.0
+			for j, div := range a.JoinDivisions {
+				// draw dividing line at this division offset
+				switch a.JoinAxis {
+				case "height":
+					gy := int(math.Round((a.OffsetY + div) * scale))
+					for x := gx1 + 1; x < gx2; x++ {
+						setCell(grid, x, gy, '-')
+					}
+					setCell(grid, gx1, gy, '+')
+					setCell(grid, gx2, gy, '+')
+				case "width":
+					gx := int(math.Round((a.OffsetX + div) * scale))
+					for y := gy1 + 1; y < gy2; y++ {
+						setCell(grid, gx, y, '|')
+					}
+					setCell(grid, gx, gy1, '+')
+					setCell(grid, gx, gy2, '+')
+				}
+				// label the section before this division
+				sectionLabel := a.JoinLabels[j]
+				switch a.JoinAxis {
+				case "height":
+					sectionY1 := int(math.Round((a.OffsetY + prev) * scale))
+					sectionY2 := int(math.Round((a.OffsetY + div) * scale))
+					if sectionY1+1 < sectionY2 {
+						setStr(grid, gx1+1, sectionY1+1, sectionLabel, interior)
+					}
+				case "width":
+					sectionX1 := int(math.Round((a.OffsetX + prev) * scale))
+					sectionX2 := int(math.Round((a.OffsetX + div) * scale))
+					sectionW := sectionX2 - sectionX1 - 1
+					if sectionW > 0 && gy1+1 < gy2 {
+						setStr(grid, sectionX1+1, gy1+1, sectionLabel, sectionW)
+					}
+				}
+				prev = div
+			}
+			// label the last section
+			lastLabel := a.JoinLabels[len(a.JoinLabels)-1]
+			switch a.JoinAxis {
+			case "height":
+				sectionY1 := int(math.Round((a.OffsetY + prev) * scale))
+				if sectionY1+1 < gy2 {
+					setStr(grid, gx1+1, sectionY1+1, lastLabel, interior)
+				}
+			case "width":
+				sectionX1 := int(math.Round((a.OffsetX + prev) * scale))
+				sectionW := gx2 - sectionX1 - 1
+				if sectionW > 0 && gy1+1 < gy2 {
+					setStr(grid, sectionX1+1, gy1+1, lastLabel, sectionW)
+				}
+			}
+		} else {
 			if gy1+1 < gy2 {
 				setStr(grid, gx1+1, gy1+1, a.RequiredLabel, interior)
 			}

@@ -1,0 +1,5 @@
+Stock #1 (96") — on hand
+|--A(36"):B(24")--|  [waste: 36"]
+
+Overall waste: 37.5%
+Nothing to purchase — all pieces fit within on-hand stock.

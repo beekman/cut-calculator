@@ -100,6 +100,58 @@ var plan2DRepeat = model.CutPlan{
 	Unfit:     nil,
 }
 
+// plan1DJoin: 96" board, two pieces (A=36", B=24") joined along length.
+var plan1DJoin = model.CutPlan{
+	Mode: 1,
+	Results: []model.StockResult{
+		{
+			Stock: model.StockPiece{Length: 96, Count: 1, OnHand: true},
+			Assignments: []model.Assignment{
+				{
+					StockIndex:    0,
+					RequiredLabel: "A+B",
+					Length:        60,
+					JoinLabels:    []string{"A", "B"},
+					JoinDivisions: []float64{36},
+					JoinAxis:      "length",
+				},
+			},
+			Cuts:        []model.Cut{{Position: 0, Label: "A+B"}},
+			WasteLength: 36,
+		},
+	},
+	WastePct:  37.5,
+	Purchased: nil,
+	Unfit:     nil,
+}
+
+// plan2DJoin: 48×96 sheet, two pieces (A=48×36, B=48×36) joined along height axis.
+var plan2DJoin = model.CutPlan{
+	Mode: 2,
+	Results: []model.StockResult{
+		{
+			Stock: model.StockPiece{Width: 48, Height: 96, Count: 1, OnHand: true},
+			Assignments: []model.Assignment{
+				{
+					StockIndex:    0,
+					RequiredLabel: "A+B",
+					Width:         48,
+					Height:        72,
+					OffsetX:       0,
+					OffsetY:       0,
+					JoinLabels:    []string{"A", "B"},
+					JoinDivisions: []float64{36},
+					JoinAxis:      "height",
+				},
+			},
+			WasteArea: 48 * 24,
+		},
+	},
+	WastePct:  25,
+	Purchased: nil,
+	Unfit:     nil,
+}
+
 func TestGolden(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -114,6 +166,8 @@ func TestGolden(t *testing.T) {
 		{"simple_2d", model.OutputJSON, plan2D},
 		{"repeat_1d", model.OutputASCII, plan1DRepeat},
 		{"repeat_2d", model.OutputASCII, plan2DRepeat},
+		{"join_1d", model.OutputASCII, plan1DJoin},
+		{"join_2d", model.OutputASCII, plan2DJoin},
 	}
 
 	for _, tc := range cases {

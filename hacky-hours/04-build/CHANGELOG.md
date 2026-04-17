@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.1.0 — Pattern Repeat + Join Groups
+Released: 2026-04-17
+
+Two new features for cutting stock with layout constraints.
+
+Features:
+- **Pattern repeat** — stock can declare a `repeat_distance` (and `repeat_axis` for 2D sheets); pieces are snapped to repeat-boundary positions so patterns align; alignment gaps are reported as required waste
+- **Join groups** — required pieces can be tagged with a `join_group`; the solver tries both individual placement and combined-cut placement, keeping whichever wastes less; 1D combined cuts show `A(36"):B(24")` inline; 2D combined cuts show a dividing line between labeled sections
+- **Unit tests** — joiner pre-processor fully tested; repeat placement tested in both solvers
+- **Golden file tests** — ASCII output regression tests for repeat (1D + 2D) and join groups (1D + 2D)
+
+---
+
 ## v1.0.0 — Complete Product: 2D Solver, YAML Input, ASCII Diagrams
 Released: 2026-04-16
 

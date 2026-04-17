@@ -14,7 +14,7 @@
 ### Join Groups
 - [x] Add `JoinGroup` field to `RequiredPiece` model (`internal/model/types.go`)
 - [x] Parse `join_group` in YAML input (`internal/input/file.go`)
-- [ ] Implement join-group pre-processor: for each group, generate a candidate combined piece and try both options (combined vs. individual); keep the lower-waste result
-- [ ] Update ASCII output: combined pieces render as one rectangle with a dashed dividing line and both labels
-- [ ] Add unit tests for join-group pre-processor
-- [ ] Add golden file tests for join-group output
+- [x] Implement join-group pre-processor: for each group, generate a candidate combined piece and try both options (combined vs. individual); keep the lower-waste result
+- [x] Update ASCII output: combined pieces render as one rectangle with a dashed dividing line and both labels
+- [x] Add unit tests for join-group pre-processor
+- [x] Add golden file tests for join-group output

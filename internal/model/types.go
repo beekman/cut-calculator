@@ -34,6 +34,10 @@ type Assignment struct {
 	OffsetX       float64
 	OffsetY       float64
 	Rotated       bool
+	// join group rendering metadata (zero values = not a joined cut)
+	JoinLabels    []string  `json:",omitempty"`
+	JoinDivisions []float64 `json:",omitempty"`
+	JoinAxis      string    `json:",omitempty"` // "length" (1D), "width" or "height" (2D)
 }
 
 type StockResult struct {
