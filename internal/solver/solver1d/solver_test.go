@@ -152,6 +152,73 @@ func TestSolve_Invariants(t *testing.T) {
 	}
 }
 
+func TestSolve_RepeatDistance(t *testing.T) {
+	s := solver1d.New()
+
+	t.Run("pieces snap to repeat boundaries", func(t *testing.T) {
+		// repeat=24", kerf=0.125", two 36" pieces on a 96" board
+		// piece1: 0→36, next pos = 36.125, snap to 48
+		// piece2: 48→84, waste = 96-84 = 12"
+		plan, _ := s.Solve(
+			[]model.StockPiece{{Length: 96, Count: 1, OnHand: true, RepeatDistance: 24}},
+			[]model.RequiredPiece{{Label: "A", Length: 36, Count: 2}},
+			0.125,
+		)
+		if len(plan.Unfit) != 0 {
+			t.Fatalf("unexpected unfit: %v", plan.Unfit)
+		}
+		cuts := plan.Results[0].Cuts
+		if len(cuts) != 2 {
+			t.Fatalf("expected 2 cuts, got %d", len(cuts))
+		}
+		if cuts[0].Position != 0 {
+			t.Errorf("cut[0] position: got %v, want 0", cuts[0].Position)
+		}
+		if cuts[1].Position != 48 {
+			t.Errorf("cut[1] position: got %v, want 48 (snapped to repeat boundary)", cuts[1].Position)
+		}
+		waste := plan.Results[0].WasteLength
+		if waste < 11.9 || waste > 12.1 {
+			t.Errorf("waste: got %.4f, want ~12 (12\" alignment gap)", waste)
+		}
+	})
+
+	t.Run("repeat prevents over-packing", func(t *testing.T) {
+		// repeat=24, kerf=0: three 36" pieces each need 48" of repeat cells = 144" > 96"
+		// only two should fit; third is unfit
+		plan, _ := s.Solve(
+			[]model.StockPiece{{Length: 96, Count: 1, OnHand: true, RepeatDistance: 24}},
+			[]model.RequiredPiece{{Label: "A", Length: 36, Count: 3}},
+			0,
+		)
+		assigned := 0
+		for _, r := range plan.Results {
+			assigned += len(r.Assignments)
+		}
+		if assigned != 2 {
+			t.Errorf("expected 2 assigned, got %d (repeat should block third piece)", assigned)
+		}
+		if len(plan.Unfit) != 1 {
+			t.Errorf("expected 1 unfit, got %d", len(plan.Unfit))
+		}
+	})
+
+	t.Run("no repeat behaves as before", func(t *testing.T) {
+		plan, _ := s.Solve(
+			[]model.StockPiece{{Length: 96, Count: 1, OnHand: true}},
+			[]model.RequiredPiece{{Label: "A", Length: 36, Count: 2}},
+			0.125,
+		)
+		if len(plan.Unfit) != 0 {
+			t.Fatalf("unexpected unfit: %v", plan.Unfit)
+		}
+		cuts := plan.Results[0].Cuts
+		if cuts[1].Position != 36.125 {
+			t.Errorf("cut[1] position: got %v, want 36.125 (no snapping)", cuts[1].Position)
+		}
+	})
+}
+
 func TestSolve_EdgeCases(t *testing.T) {
 	s := solver1d.New()
 

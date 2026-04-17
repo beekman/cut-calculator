@@ -1,6 +1,7 @@
 package solver1d
 
 import (
+	"math"
 	"sort"
 
 	"github.com/beekman/cut-calculator/internal/model"
@@ -34,12 +35,12 @@ func assign(stock []model.StockPiece, pieces []model.RequiredPiece, kerf float64
 		if len(remaining) == 0 {
 			break
 		}
-		chosen := knapsack(s.Length, remaining, kerf)
+		chosen := knapsack(s.Length, remaining, kerf, s.RepeatDistance)
 		if len(chosen) == 0 {
 			continue
 		}
 
-		result, used := buildResult(len(results), s, chosen, kerf)
+		result, used := buildResult(len(results), s, chosen, kerf, s.RepeatDistance)
 		results = append(results, result)
 		remaining = remove(remaining, chosen)
 
@@ -62,29 +63,30 @@ func assign(stock []model.StockPiece, pieces []model.RequiredPiece, kerf float64
 	}, remaining
 }
 
-func buildResult(idx int, s model.StockPiece, chosen []model.RequiredPiece, kerf float64) (model.StockResult, float64) {
+func buildResult(idx int, s model.StockPiece, chosen []model.RequiredPiece, kerf, repeatDist float64) (model.StockResult, float64) {
 	var cuts []model.Cut
 	var assignments []model.Assignment
 	pos := 0.0
 	usedLength := 0.0
 
 	for i, p := range chosen {
-		if i > 0 {
-			pos += kerf
-		}
 		cuts = append(cuts, model.Cut{Position: pos, Label: p.Label})
 		assignments = append(assignments, model.Assignment{
 			StockIndex:    idx,
 			RequiredLabel: p.Label,
 			Length:        p.Length,
 		})
-		pos += p.Length
 		usedLength += p.Length
+		pos += p.Length
+		if i < len(chosen)-1 {
+			pos += kerf
+			if repeatDist > 0 {
+				pos = math.Ceil(pos/repeatDist) * repeatDist
+			}
+		}
 	}
 
-	// kerf cuts between pieces consume material too
-	kerfTotal := float64(len(chosen)-1) * kerf
-	waste := s.Length - usedLength - kerfTotal
+	waste := s.Length - pos
 
 	return model.StockResult{
 		Stock:       s,

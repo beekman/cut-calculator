@@ -5,7 +5,7 @@
 ### Pattern Repeat
 - [x] Add `RepeatDistance` and `RepeatAxis` fields to `StockPiece` model (`internal/model/types.go`)
 - [x] Parse `repeat_distance` / `repeat_axis` in YAML input (`internal/input/file.go`)
-- [ ] Update 1D solver: snap piece placement to repeat boundaries; report alignment gaps as required waste
+- [x] Update 1D solver: snap piece placement to repeat boundaries; report alignment gaps as required waste
 - [ ] Update 2D solver: snap placement on the specified axis to repeat boundaries
 - [ ] Update ASCII output: show repeat boundary markers (dashed lines at each repeat interval)
 - [ ] Add unit tests for repeat-boundary placement logic (1D and 2D)

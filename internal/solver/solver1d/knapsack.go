@@ -7,17 +7,26 @@ import (
 )
 
 // knapsack finds the subset of pieces that maximizes used length within stockLength.
-// Each piece costs (length + kerf); one extra kerf is added to capacity to cancel
-// the unnecessary kerf charged to the first piece.
-// Net constraint: sum(lengths) + (n-1)*kerf ≤ stockLength.
-func knapsack(stockLength float64, pieces []model.RequiredPiece, kerf float64) []model.RequiredPiece {
+//
+// Without repeat: each piece costs (length + kerf); capacity gets +kerf to cancel the
+// kerf charged to the last piece. Net: sum(lengths) + (n-1)*kerf ≤ stockLength.
+//
+// With repeat: each piece costs ceil((length+kerf)/repeatDist)*repeatDist — the full
+// repeat cell(s) it consumes. Capacity is stockLength with no adjustment (conservative:
+// may leave a small gap at end, never over-commits).
+func knapsack(stockLength float64, pieces []model.RequiredPiece, kerf, repeatDist float64) []model.RequiredPiece {
 	n := len(pieces)
 	if n == 0 {
 		return nil
 	}
 
 	const scale = 1000
-	cap := int(math.Round((stockLength + kerf) * scale))
+	var cap int
+	if repeatDist > 0 {
+		cap = int(math.Round(stockLength * scale))
+	} else {
+		cap = int(math.Round((stockLength + kerf) * scale))
+	}
 
 	dp := make([]int, cap+1)
 	choice := make([][]bool, n)
@@ -27,7 +36,12 @@ func knapsack(stockLength float64, pieces []model.RequiredPiece, kerf float64) [
 
 	weights := make([]int, n)
 	for i, p := range pieces {
-		weights[i] = int(math.Round((p.Length + kerf) * scale))
+		if repeatDist > 0 {
+			cells := math.Ceil((p.Length + kerf) / repeatDist)
+			weights[i] = int(math.Round(cells * repeatDist * scale))
+		} else {
+			weights[i] = int(math.Round((p.Length + kerf) * scale))
+		}
 	}
 
 	for i := range pieces {

@@ -34,7 +34,12 @@ func expandStock(stock []model.StockPiece) []model.StockPiece {
 			n = 1
 		}
 		for i := 0; i < n; i++ {
-			out = append(out, model.StockPiece{Length: s.Length, Count: 1, OnHand: s.OnHand})
+			out = append(out, model.StockPiece{
+				Length:         s.Length,
+				Count:          1,
+				OnHand:         s.OnHand,
+				RepeatDistance: s.RepeatDistance,
+			})
 		}
 	}
 	return out
