@@ -36,6 +36,24 @@ A guillotine cut goes straight across the full width or height of a panel — wh
 ### Rotation (2D only)
 By default, required pieces may be rotated 90° if it produces a better fit. Rotation can be disabled globally (`--no-rotate`) for materials where orientation matters (e.g. wood grain, pegboard hole alignment, wallpaper).
 
+### Pattern Repeat
+Some materials have a design that repeats at a fixed interval — wallpaper, patterned fabric, decorative tile. For cuts from these materials to align visually when installed, each piece must start at a **repeat boundary**: a position that is a whole multiple of the `repeat_distance`.
+
+`repeat_distance` is a property of the **stock piece** (it describes the material, not the piece being cut). When set, the solver pads placement positions to the next repeat boundary as needed. This padding counts as required waste — it is reported separately from kerf waste.
+
+In 2D, repeat applies to one axis only (`repeat_axis: height` or `repeat_axis: width`). In 1D, the single axis is implicit.
+
+Pattern repeat is almost always used with `--no-rotate`, since orientation must be preserved for the pattern to align.
+
+**Example:** `repeat_distance: 24` on a 96" stock piece. A 36" piece placed at position 0 ends at 36". The next piece must start at 48" (the next 24" boundary), leaving a 12" alignment gap.
+
+### Join Groups
+When two or more required pieces will be joined in the final product (e.g. edge-glued boards, seamed wallpaper panels), tagging them with a `join_group` lets the solver treat them as a single combined piece for cutting purposes.
+
+The solver tries both options — cut individually vs. cut as one combined piece — and uses whichever produces less total waste. The combined piece's dimensions are the sum of the individual pieces along the joining axis (width for side-by-side, height for stacked).
+
+In the output, a combined piece is shown as one rectangle with a **dashed line** at the join boundary and both labels.
+
 ### Mixed Stock
 Stock pieces are tagged as either:
 - **On hand** — already owned; the optimizer uses these first at no cost
@@ -148,3 +166,6 @@ If no valid plan exists (e.g. a required piece is larger than any available stoc
 | Required piece exactly equals stock size (no kerf room) | Assign as a zero-waste cut; no saw cut needed |
 | Duplicate required sizes | Treated as separate pieces — each must be assigned |
 | Stock piece already smaller than smallest required piece | Skip it; report as unusable offcut |
+| `repeat_distance` set but piece doesn't fit within one repeat interval | Error: piece is larger than the repeat distance; alignment is impossible |
+| `join_group` with only one member | Treated as a normal individual piece (no-op) |
+| `join_group` members have incompatible dimensions for combining | Error: report which group cannot be combined and why |

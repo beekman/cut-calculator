@@ -128,6 +128,41 @@ need:
     count: 6
 ```
 
+### Pattern-repeat example (wallpaper)
+
+```yaml
+rotate: false     # orientation must be preserved
+
+stock:
+  - width: 27      # 27" wide wallpaper roll
+    height: 240    # 20 feet
+    on_hand: true
+    repeat_distance: 24   # pattern repeats every 24"
+    repeat_axis: height   # repeat runs along the height (vertical)
+
+need:
+  - width: 27
+    height: 96
+    count: 3
+    label: "wall-A"
+```
+
+### Join-group example
+
+```yaml
+stock:
+  - length: 96
+    count: 2
+    on_hand: true
+
+need:
+  - length: 48
+    count: 2
+    join_group: "panel-left"   # these two will be edge-glued
+  - length: 36
+    count: 1
+```
+
 ### Merge rules (flags + file)
 
 When both `-f` and flags are provided:
@@ -143,19 +178,22 @@ When both `-f` and flags are provided:
 type Dimension int  // 1 = 1D, 2 = 2D
 
 type StockPiece struct {
-    Length float64  // 1D
-    Width  float64  // 2D
-    Height float64  // 2D
-    Count  int
-    OnHand bool
+    Length         float64  // 1D
+    Width          float64  // 2D
+    Height         float64  // 2D
+    Count          int
+    OnHand         bool
+    RepeatDistance float64  // 0 = no repeat constraint
+    RepeatAxis     string   // 2D only: "height" or "width"; ignored in 1D
 }
 
 type RequiredPiece struct {
-    Label  string   // auto-assigned: A, B, C...
-    Length float64  // 1D
-    Width  float64  // 2D
-    Height float64  // 2D
-    Count  int
+    Label     string   // auto-assigned: A, B, C...
+    Length    float64  // 1D
+    Width     float64  // 2D
+    Height    float64  // 2D
+    Count     int
+    JoinGroup string   // pieces sharing a label are combined-cut candidates; "" = no group
 }
 
 type Cut struct {
