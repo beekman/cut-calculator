@@ -18,13 +18,34 @@ Or download a binary from the [Releases](https://github.com/beekman/cut-calculat
 
 ```bash
 # 1D: three 8-foot boards on hand, need four 3-foot and two 4-foot pieces
+cut-calculator --stock 96:3:onhand --need 36:4 --need 48:2
+
+# 1D: account for blade width (kerf)
 cut-calculator --stock 96:3:onhand --need 36:4 --need 48:2 --kerf 0.125
+
+# 1D: mix on-hand offcuts with purchasable stock
+cut-calculator --stock 44:1:onhand --stock 96:10 --need 36:4 --need 48:2 --kerf 0.125
 
 # 2D: one 4×8 sheet on hand, need four 24×36 pieces
 cut-calculator --stock 48x96:1:onhand --need 24x36:4
 
+# 2D: disable rotation (pieces won't be turned 90°)
+cut-calculator --stock 48x96:2:onhand --need 24x36:4 --need 12x12:6 --no-rotate
+
+# 2D: multiple purchasable sheets available if on-hand isn't enough
+cut-calculator --stock 48x96:1:onhand --stock 48x96:5 --need 24x36:8 --kerf 0.125
+
+# Plain text output instead of ASCII diagram
+cut-calculator --stock 96:3:onhand --need 36:4 --need 48:2 --output text
+
+# JSON output for scripting
+cut-calculator --stock 96:3:onhand --need 36:4 --output json
+
 # From a YAML file
 cut-calculator -f myproject.yaml
+
+# File provides the base; flags add stock and override kerf
+cut-calculator -f myproject.yaml --stock 44:1:onhand --kerf 0.0625
 ```
 
 ## Flags
