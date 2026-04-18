@@ -36,8 +36,8 @@ func Parse(args []string) (*Config, error) {
 	var outputFormat string
 	var filePath string
 
-	fs.Var(&stockFlags, "stock", "Stock piece: LENGTH[:COUNT][:onhand] e.g. 96:3:onhand")
-	fs.Var(&needFlags, "need", "Required piece: LENGTH[:COUNT] e.g. 36:4")
+	fs.Var(&stockFlags, "stock", "Stock piece: LEN[xWIDTH][:COUNT][:onhand] e.g. 96:3:onhand or 48x96:1:onhand")
+	fs.Var(&needFlags, "need", "Required piece: LEN[xWIDTH][:COUNT] e.g. 36:4 or 24x36:4")
 	fs.Float64Var(&kerf, "kerf", 0, "Blade kerf width in inches")
 	fs.BoolVar(&noRotate, "no-rotate", false, "Disable piece rotation in 2D mode")
 	fs.StringVar(&outputFormat, "output", "", "Output format: ascii (default), text, json")
@@ -81,12 +81,17 @@ func parseStock(s string) (model.StockPiece, error) {
 		return model.StockPiece{}, fmt.Errorf("too many fields")
 	}
 
-	length, err := parsePositiveFloat(parts[0])
+	dim1, dim2, err := parseDimensions(parts[0])
 	if err != nil {
 		return model.StockPiece{}, err
 	}
 
-	p := model.StockPiece{Length: length, Count: 1}
+	var p model.StockPiece
+	if dim2 > 0 {
+		p = model.StockPiece{Width: dim1, Height: dim2, Count: 1}
+	} else {
+		p = model.StockPiece{Length: dim1, Count: 1}
+	}
 
 	for _, part := range parts[1:] {
 		if part == "onhand" {
@@ -109,12 +114,17 @@ func parseNeed(s string, next func() string) (model.RequiredPiece, error) {
 		return model.RequiredPiece{}, fmt.Errorf("too many fields")
 	}
 
-	length, err := parsePositiveFloat(parts[0])
+	dim1, dim2, err := parseDimensions(parts[0])
 	if err != nil {
 		return model.RequiredPiece{}, err
 	}
 
-	p := model.RequiredPiece{Length: length, Count: 1, Label: next()}
+	var p model.RequiredPiece
+	if dim2 > 0 {
+		p = model.RequiredPiece{Width: dim1, Height: dim2, Count: 1, Label: next()}
+	} else {
+		p = model.RequiredPiece{Length: dim1, Count: 1, Label: next()}
+	}
 
 	if len(parts) == 2 {
 		n, err := strconv.Atoi(parts[1])
@@ -125,6 +135,24 @@ func parseNeed(s string, next func() string) (model.RequiredPiece, error) {
 	}
 
 	return p, nil
+}
+
+// parseDimensions parses "LENGTH" or "LENGTHxWIDTH" into (length, width).
+// Width is 0 when only one dimension is present (1D mode).
+func parseDimensions(s string) (length, width float64, err error) {
+	if idx := strings.IndexByte(s, 'x'); idx >= 0 {
+		length, err = parsePositiveFloat(s[:idx])
+		if err != nil {
+			return 0, 0, err
+		}
+		width, err = parsePositiveFloat(s[idx+1:])
+		if err != nil {
+			return 0, 0, err
+		}
+		return length, width, nil
+	}
+	length, err = parsePositiveFloat(s)
+	return length, 0, err
 }
 
 func parsePositiveFloat(s string) (float64, error) {

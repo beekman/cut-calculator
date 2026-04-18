@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.1.3 — Fix: 2D dimensions via --stock and --need flags
+Released: 2026-04-17
+
+Fix: `--stock WxH` and `--need WxH` flag syntax was not supported. The flag
+parser only accepted a single length; passing `48x96` produced "not a number"
+errors. Added `parseDimensions` helper that splits on `x` and maps the two
+values to `Width`+`Height` (2D) vs `Length` (1D), matching the convention
+the 2D solver already uses internally.
+
+---
+
 ## v1.1.2 — Hotfix: 1D solver over-allocation under float rounding
 Released: 2026-04-17
 
