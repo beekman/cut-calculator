@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.2 — Hotfix: 1D solver over-allocation under float rounding
+Released: 2026-04-17
+
+Fix: `knapsack.go` used `math.Round` for both piece weights and DP capacity,
+allowing rounding-down on weights and rounding-up on capacity to combine into
+a packing that passed the integer check but slightly exceeded stock length in
+float arithmetic. Changed to `math.Ceil` for weights and `math.Floor` for
+capacity so the integer DP is always conservative. Caught by the fuzz suite
+(177k+ execs clean post-fix).
+
+---
+
 ## v1.1.1 — Hotfix: commit cmd/ entrypoint
 Released: 2026-04-17
 

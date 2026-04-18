@@ -23,9 +23,9 @@ func knapsack(stockLength float64, pieces []model.RequiredPiece, kerf, repeatDis
 	const scale = 1000
 	var cap int
 	if repeatDist > 0 {
-		cap = int(math.Round(stockLength * scale))
+		cap = int(math.Floor(stockLength * scale))
 	} else {
-		cap = int(math.Round((stockLength + kerf) * scale))
+		cap = int(math.Floor((stockLength + kerf) * scale))
 	}
 
 	dp := make([]int, cap+1)
@@ -38,9 +38,9 @@ func knapsack(stockLength float64, pieces []model.RequiredPiece, kerf, repeatDis
 	for i, p := range pieces {
 		if repeatDist > 0 {
 			cells := math.Ceil((p.Length + kerf) / repeatDist)
-			weights[i] = int(math.Round(cells * repeatDist * scale))
+			weights[i] = int(math.Ceil(cells * repeatDist * scale))
 		} else {
-			weights[i] = int(math.Round((p.Length + kerf) * scale))
+			weights[i] = int(math.Ceil((p.Length + kerf) * scale))
 		}
 	}
 
