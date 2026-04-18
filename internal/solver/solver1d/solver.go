@@ -12,6 +12,7 @@ func (s *Solver) Solve(stock []model.StockPiece, need []model.RequiredPiece, ker
 	inventory := expandStock(stock)
 
 	plan, unfit := assign(inventory, pieces, kerf)
+	plan.Mode = 1
 	plan.Unfit = unfit
 	return plan, nil
 }

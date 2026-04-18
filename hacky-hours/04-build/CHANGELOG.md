@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.1.5 — Fix: JSON Mode field is 1 for 1D plans
+Released: 2026-04-17
+
+Fix: the 1D solver never set `plan.Mode`, so JSON output showed `"Mode": 0`.
+Now sets `Mode: 1` to match the 2D solver's `Mode: 2`.
+
+---
+
 ## v1.1.4 — Fix: text output for 2D mode
 Released: 2026-04-17
 
