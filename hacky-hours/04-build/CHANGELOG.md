@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.4 — Fix: text output for 2D mode
+Released: 2026-04-17
+
+Fix: `--output text` was broken in 2D mode. The text formatter read `Length`
+(always 0 for 2D), iterated `Cuts` (empty in 2D), and showed `0" board` for
+every sheet. Updated to branch on `plan.Mode`: 2D output now shows sheet
+dimensions, piece placements with offsets, rotation flag, and waste area.
+Purchase list and unfit list also show correct `W" × H"` format for 2D.
+Golden file updated.
+
+---
+
 ## v1.1.3 — Fix: 2D dimensions via --stock and --need flags
 Released: 2026-04-17
 

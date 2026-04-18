@@ -1,4 +1,8 @@
-Stock #1 — 0" board (on hand)
+Sheet #1 — 48" × 96" (on hand)
+  Piece A: 24" × 48" at (0", 0")
+  Piece A: 24" × 48" at (24", 0")
+  Piece A: 24" × 48" at (0", 48")
+  Piece A: 24" × 48" at (24", 48")
 
 Overall waste: 0.0%
 Nothing to purchase — all pieces fit within on-hand stock.
