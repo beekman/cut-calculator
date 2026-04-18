@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.1 — Hotfix: commit cmd/ entrypoint
+Released: 2026-04-17
+
+Fix: `cmd/cut-calculator/main.go` was untracked and absent from the v1.1.0 tag,
+causing `go install github.com/beekman/cut-calculator/cmd/cut-calculator@latest`
+to fail with "does not contain package". No logic changes.
+
+---
+
 ## v1.1.0 — Pattern Repeat + Join Groups
 Released: 2026-04-17
 
